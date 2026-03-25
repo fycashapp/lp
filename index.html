@@ -56,7 +56,7 @@
     import { createRoot } from 'react-dom/client';
     import { motion, useScroll, useTransform, AnimatePresence, useInView, useMotionValue, useSpring, useMotionTemplate } from 'framer-motion';
     import { 
-      MessageCircle, Smartphone, Clock, ShieldCheck, TrendingUp, Zap, Target, Layout, ChevronRight, Menu, X, CheckCircle2, AlertCircle, Gamepad2, BellRing, ArrowRight, Wallet, LineChart, PieChart, Coins, CircleDollarSign, Send
+      MessageCircle, Smartphone, Clock, ShieldCheck, TrendingUp, Zap, Target, Layout, ChevronRight, Menu, X, CheckCircle2, AlertCircle, Gamepad2, BellRing, ArrowRight, Wallet, LineChart, PieChart, Coins, CircleDollarSign, Send, CheckCircle
     } from 'lucide-react';
 
     const colors = {
@@ -80,8 +80,8 @@
       </div>
     );
 
-    const Button = ({ children, variant = 'primary', className = "", ...props }) => {
-      const baseStyles = "relative px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group text-sm md:text-base cursor-pointer";
+    const Button = ({ children, variant = 'primary', className = "", disabled, ...props }) => {
+      const baseStyles = "relative px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group text-sm md:text-base cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed";
       const variants = {
         primary: `text-black`,
         secondary: `border border-white/10 text-white hover:bg-white/5`,
@@ -90,9 +90,10 @@
 
       return (
         <motion.button 
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
+          whileHover={!disabled ? { scale: 1.03 } : {}}
+          whileTap={!disabled ? { scale: 0.97 } : {}}
           className={`${baseStyles} ${variants[variant]} w-full sm:w-auto ${className}`}
+          disabled={disabled}
           {...props}
         >
           {variant === 'primary' && (
@@ -100,13 +101,15 @@
           )}
           <span className="relative z-10 flex items-center gap-2">
             {children}
-            <motion.span 
-              initial={{ x: 0 }}
-              whileHover={{ x: 5 }}
-              className="inline-block"
-            >
-              <ArrowRight size={18} />
-            </motion.span>
+            {!disabled && (
+              <motion.span 
+                initial={{ x: 0 }}
+                whileHover={{ x: 5 }}
+                className="inline-block"
+              >
+                <ArrowRight size={18} />
+              </motion.span>
+            )}
           </span>
         </motion.button>
       );
@@ -327,7 +330,6 @@
           onMouseMove={handleMouseMove}
           className="relative h-full w-full flex items-center pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden bg-[#0A051A]"
         >
-          {/* Degrade interativo */}
           <motion.div 
             className="absolute inset-0 z-0 pointer-events-none"
             style={{
@@ -346,7 +348,6 @@
             }}
           />
 
-          {/* Figurinhas Animadas de Fundo */}
           <motion.div animate={{ y: [-20, 20, -20], rotate: [0, 10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }} className="absolute top-[15%] left-[5%] text-white/5 opacity-40 pointer-events-none hidden md:block">
             <Wallet size={120} strokeWidth={1} />
           </motion.div>
@@ -393,7 +394,6 @@
               </div>
             </motion.div>
 
-            {/* Celular perfeitamente alinhado com bom espaçamento */}
             <motion.div style={{ y }} className="relative mt-12 lg:mt-0 flex justify-center lg:justify-end xl:justify-center z-10 w-full">
               <motion.div 
                 animate={{ y: [0, -15, 0] }}
@@ -873,6 +873,50 @@
     };
 
     const VIPSection = () => {
+      // ESTADO DO FORMULÁRIO DE CAPTURA
+      const [formData, setFormData] = useState({ name: '', whatsapp: '', email: '' });
+      const [status, setStatus] = useState('idle'); // idle | loading | success | error
+
+      // URL do Webhook configurada para o n8n
+      const WEBHOOK_URL = "https://v4silvaanchieta.site/webhook/fycash-lead";
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+      const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        // Para testes visuais antes de colocar a URL real:
+        if (WEBHOOK_URL === "COLOQUE_SUA_URL_DO_WEBHOOK_AQUI") {
+           setStatus('loading');
+           setTimeout(() => { setStatus('success'); setFormData({ name: '', whatsapp: '', email: '' }); }, 1500);
+           return;
+        }
+
+        setStatus('loading');
+
+        try {
+          const response = await fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+          });
+
+          if (response.ok) {
+            setStatus('success');
+            setFormData({ name: '', whatsapp: '', email: '' });
+          } else {
+            setStatus('error');
+          }
+        } catch (error) {
+          console.error("Erro ao enviar dados:", error);
+          setStatus('error');
+        }
+      };
+
       return (
         <section id="cadastro" className="scroll-mt-28 py-16 md:py-24 container mx-auto px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-[32px] md:rounded-[50px] bg-zinc-900 border border-white/10 p-6 sm:p-10 md:p-24 text-center shadow-2xl">
@@ -892,12 +936,61 @@
               <p className="text-base md:text-xl text-zinc-400 mb-8 md:mb-12">Receba um convite VIP e teste por 15 dias grátis. Tenha o controle que você sempre sonhou.</p>
               
               <div className="bg-black/50 p-6 sm:p-8 md:p-12 rounded-[24px] md:rounded-[40px] border border-white/5 backdrop-blur-xl">
-                 <div className="grid gap-3 md:gap-4 mb-6 md:mb-8">
-                    <input type="text" placeholder="Seu Nome" className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" />
-                    <input type="tel" placeholder="Seu WhatsApp" className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" />
-                    <input type="email" placeholder="Seu E-mail" className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" />
-                 </div>
-                 <Button className="w-full py-4 md:py-5 text-lg md:text-xl">🎁 Receber convite VIP</Button>
+                 
+                 {status === 'success' ? (
+                   <motion.div 
+                     initial={{ opacity: 0, scale: 0.8 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     className="py-12 flex flex-col items-center justify-center gap-4 text-[#21E9CA]"
+                   >
+                     <CheckCircle size={64} className="animate-pulse" />
+                     <h3 className="text-2xl font-black text-white">Convite Solicitado!</h3>
+                     <p className="text-zinc-400">Tudo certo! Em breve você receberá as instruções no seu WhatsApp e e-mail.</p>
+                     <button onClick={() => setStatus('idle')} className="mt-4 text-sm text-[#21E9CA] underline">Voltar</button>
+                   </motion.div>
+                 ) : (
+                   <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-8">
+                      <input 
+                        type="text" 
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        placeholder="Seu Nome" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                      />
+                      <input 
+                        type="tel" 
+                        name="whatsapp"
+                        value={formData.whatsapp}
+                        onChange={handleChange}
+                        required
+                        placeholder="Seu WhatsApp" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                      />
+                      <input 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        placeholder="Seu E-mail" 
+                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                      />
+                      
+                      {status === 'error' && (
+                        <p className="text-red-500 text-sm mt-2 font-medium">Ocorreu um erro ao enviar. Tente novamente.</p>
+                      )}
+
+                      <Button 
+                        type="submit" 
+                        disabled={status === 'loading'}
+                        className="w-full py-4 md:py-5 text-lg md:text-xl mt-2"
+                      >
+                        {status === 'loading' ? 'Enviando...' : '🎁 Receber convite VIP'}
+                      </Button>
+                   </form>
+                 )}
                  
                  <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-4 md:gap-6 justify-center text-[10px] md:text-xs font-bold uppercase tracking-widest text-zinc-500">
                     <span className="flex items-center gap-2 justify-center"><CheckCircle2 size={14} className="text-[#21E9CA]" /> 15 dias grátis</span>
@@ -955,7 +1048,7 @@
             <Hero />
           </div>
 
-          {/* Espaçador para permitir o rolamento - Corrigido para 100vh sem cortes bruscos */}
+          {/* Espaçador para permitir o rolamento */}
           <div className="h-[100vh] w-full pointer-events-none relative z-10"></div>
 
           {/* O Bloco Arredondado que desliza por cima da tela inicial */}
