@@ -325,7 +325,7 @@
       return (
         <section 
           onMouseMove={handleMouseMove}
-          className="relative h-full w-full flex items-center pt-24 md:pt-28 pb-10 overflow-hidden bg-[#0A051A]"
+          className="relative h-full w-full flex items-center pt-24 md:pt-28 pb-16 md:pb-24 overflow-hidden bg-[#0A051A]"
         >
           {/* Degrade interativo */}
           <motion.div 
@@ -955,8 +955,10 @@
             <Hero />
           </div>
 
-          <div className="h-[90vh] w-full pointer-events-none relative z-10"></div>
+          {/* Espaçador para permitir o rolamento - Empurra a próxima seção para baixo da dobra */}
+          <div className="h-[105vh] w-full pointer-events-none relative z-10"></div>
 
+          {/* O Bloco Arredondado que desliza por cima da tela inicial */}
           <div className="relative z-20 bg-[#0A0A0A] rounded-t-[40px] md:rounded-t-[80px] shadow-[0_-15px_40px_rgba(0,0,0,0.3)] border-t border-white/5 flex flex-col">
             <BulletsSection />
             <ProblemsSection />
