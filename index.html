@@ -224,7 +224,6 @@
               <div className="hidden md:flex gap-8 items-center text-sm font-medium">
                 <a href="#solucao" className="hover:text-[#21E9CA] transition-colors">Solução</a>
                 <a href="#como-funciona" className="hover:text-[#21E9CA] transition-colors">Como funciona</a>
-                <Button className="py-2 px-6 text-sm" variant="secondary">Login</Button>
                 <a href="#cadastro"><Button className="py-2 px-6 text-sm">Convite VIP</Button></a>
               </div>
 
@@ -248,7 +247,6 @@
                 <a href="#solucao" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold hover:text-[#21E9CA] transition-colors">Solução</a>
                 <a href="#como-funciona" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold hover:text-[#21E9CA] transition-colors">Como funciona</a>
                 <div className="flex flex-col gap-4 w-3/4 mt-8">
-                  <Button variant="secondary" onClick={() => setIsMenuOpen(false)}>Login</Button>
                   <a href="#cadastro" onClick={() => setIsMenuOpen(false)} className="w-full"><Button className="w-full">Convite VIP</Button></a>
                 </div>
               </motion.div>
@@ -880,8 +878,26 @@
       // URL do Webhook configurada para o n8n
       const WEBHOOK_URL = "https://v4silvaanchieta.site/webhook/fycash-lead";
 
+      // Função para aplicar a máscara de WhatsApp
+      const maskPhone = (value) => {
+        if (!value) return "";
+        value = value.replace(/\D/g, ''); // Remove tudo o que não for número
+        if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
+        value = value.replace(/^(\d{2})(\d)/g, '($1) $2'); // Coloca parênteses no DDD
+        value = value.replace(/(\d)(\d{4})$/, '$1-$2'); // Coloca hífen na segunda parte
+        return value;
+      };
+
       const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        let { name, value } = e.target;
+
+        if (name === 'whatsapp') {
+          value = maskPhone(value);
+        } else if (name === 'email') {
+          value = value.toLowerCase().replace(/\s/g, ''); // Remove espaços e força minúsculas
+        }
+
+        setFormData({ ...formData, [name]: value });
       };
 
       const handleSubmit = async (e) => {
@@ -965,6 +981,7 @@
                         value={formData.whatsapp}
                         onChange={handleChange}
                         required
+                        maxLength="15"
                         placeholder="Seu WhatsApp" 
                         className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
                       />
