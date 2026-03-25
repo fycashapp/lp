@@ -77,7 +77,7 @@
     );
 
     const Button = ({ children, variant = 'primary', className = "", ...props }) => {
-      const baseStyles = "relative px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group text-sm md:text-base";
+      const baseStyles = "relative px-6 py-3 md:px-8 md:py-4 rounded-2xl font-bold transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group text-sm md:text-base cursor-pointer";
       const variants = {
         primary: `text-black`,
         secondary: `border border-white/10 text-white hover:bg-white/5`,
@@ -220,7 +220,7 @@
                 <a href="#solucao" className="hover:text-[#21E9CA] transition-colors">Solução</a>
                 <a href="#como-funciona" className="hover:text-[#21E9CA] transition-colors">Como funciona</a>
                 <Button className="py-2 px-6 text-sm" variant="secondary">Login</Button>
-                <Button className="py-2 px-6 text-sm">Convite VIP</Button>
+                <a href="#cadastro"><Button className="py-2 px-6 text-sm">Convite VIP</Button></a>
               </div>
 
               {/* Mobile Menu Toggle */}
@@ -246,7 +246,7 @@
                 <a href="#como-funciona" onClick={() => setIsMenuOpen(false)} className="text-2xl font-bold hover:text-[#21E9CA] transition-colors">Como funciona</a>
                 <div className="flex flex-col gap-4 w-3/4 mt-8">
                   <Button variant="secondary" onClick={() => setIsMenuOpen(false)}>Login</Button>
-                  <Button onClick={() => setIsMenuOpen(false)}>Convite VIP</Button>
+                  <a href="#cadastro" onClick={() => setIsMenuOpen(false)} className="w-full"><Button className="w-full">Convite VIP</Button></a>
                 </div>
               </motion.div>
             )}
@@ -257,21 +257,57 @@
 
     const Hero = () => {
       const { scrollYProgress } = useScroll();
-      const y = useTransform(scrollYProgress, [0, 0.5], [0, 100]); // Reduzido o parallax no mobile
-      const bgY1 = useTransform(scrollYProgress, [0, 1], [0, 200]);
-      const bgY2 = useTransform(scrollYProgress, [0, 1], [0, -200]);
+      // Animação de parallax sutil para os itens do Hero enquanto o card desliza por cima
+      const y = useTransform(scrollYProgress, [0, 0.5], [0, 100]); 
+      
+      // Movimento do mouse para o background interativo
+      const mouseX = useMotionValue(typeof window !== 'undefined' ? window.innerWidth / 2 : 0);
+      const mouseY = useMotionValue(typeof window !== 'undefined' ? window.innerHeight / 2 : 0);
+      
+      const smoothX = useSpring(mouseX, { damping: 50, stiffness: 400 });
+      const smoothY = useSpring(mouseY, { damping: 50, stiffness: 400 });
+
+      useEffect(() => {
+        mouseX.set(window.innerWidth / 2);
+        mouseY.set(window.innerHeight / 2);
+      }, []);
+
+      const handleMouseMove = (e) => {
+        mouseX.set(e.clientX);
+        mouseY.set(e.clientY);
+      };
 
       return (
-        <section className="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
-          <motion.div style={{ background: colors.purple, y: bgY1 }} className="absolute top-[-10%] right-[-10%] w-[300px] md:w-[500px] h-[300px] md:h-[500px] rounded-full blur-[100px] md:blur-[120px] opacity-20 pointer-events-none" />
-          <motion.div style={{ background: colors.cyan, y: bgY2 }} className="absolute bottom-[5%] left-[-10%] w-[250px] md:w-[400px] h-[250px] md:h-[400px] rounded-full blur-[80px] md:blur-[100px] opacity-10 pointer-events-none" />
+        <section 
+          onMouseMove={handleMouseMove}
+          className="relative h-full w-full flex items-center pt-20 md:pt-28 pb-10 overflow-hidden bg-[#0A051A]"
+        >
+          {/* Degrade interativo baseado na arte */}
+          <motion.div 
+            className="absolute inset-0 z-0 pointer-events-none"
+            style={{
+              background: useMotionTemplate`
+                radial-gradient(
+                  1000px circle at ${smoothX}px ${smoothY}px,
+                  rgba(33, 233, 202, 0.25),
+                  transparent 70%
+                ),
+                radial-gradient(
+                  1200px circle at calc(100% - ${smoothX}px) calc(100% - ${smoothY}px),
+                  rgba(141, 90, 228, 0.3),
+                  transparent 80%
+                )
+              `
+            }}
+          />
 
-          <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="container mx-auto px-6 grid md:grid-cols-2 gap-12 lg:gap-16 items-center relative z-10">
             <motion.div 
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="text-center md:text-left z-10"
+              className="text-center md:text-left"
+              style={{ y }} // Parallax interno
             >
               <div className="inline-flex items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] md:text-xs font-bold uppercase tracking-widest mb-6 text-[#21E9CA]">
                 <Zap size={14} /> Inteligência Financeira Real
@@ -279,23 +315,27 @@
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black leading-[1.1] mb-6">
                 Organize seu dinheiro pelo <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#21E9CA] to-emerald-400">WhatsApp</span>
               </h1>
-              <p className="text-lg md:text-xl text-zinc-300 mb-8 max-w-lg mx-auto md:mx-0 leading-relaxed font-medium">
-                O controle financeiro no app que você já usa. Sem planilhas, sem complicação e sem sofrimento com números.
-              </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 mb-10 justify-center md:justify-start">
-                <Button>Receber convite VIP</Button>
-                <Button variant="secondary">Ver como funciona</Button>
-              </div>
+              <p className="text-lg md:text-xl text-zinc-300 mb-6 max-w-lg mx-auto md:mx-0 leading-relaxed font-medium">
+                O controle financeiro no app que você já usa.
+              </p>
 
-              <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center md:justify-start text-zinc-400 text-sm font-medium">
-                <span className="flex items-center justify-center md:justify-start gap-2"><CheckCircle2 size={16} className="text-[#21E9CA]" /> Sem planilhas</span>
-                <span className="flex items-center justify-center md:justify-start gap-2"><CheckCircle2 size={16} className="text-[#21E9CA]" /> Sem complicação</span>
+              {/* Tópicos Flutuantes */}
+              <div className="flex flex-wrap gap-3 mb-10 justify-center md:justify-start">
+                  <motion.div animate={{y: [0, -6, 0]}} transition={{duration: 4, repeat: Infinity, ease: "easeInOut"}} className="px-4 py-2 rounded-2xl bg-white/5 border border-[#21E9CA]/20 text-xs md:text-sm font-medium backdrop-blur-md shadow-xl text-zinc-200">Sem planilhas</motion.div>
+                  <motion.div animate={{y: [0, -8, 0]}} transition={{duration: 4, repeat: Infinity, delay: 1, ease: "easeInOut"}} className="px-4 py-2 rounded-2xl bg-white/5 border border-[#21E9CA]/20 text-xs md:text-sm font-medium backdrop-blur-md shadow-xl text-zinc-200">Sem complicação</motion.div>
+                  <motion.div animate={{y: [0, -5, 0]}} transition={{duration: 4, repeat: Infinity, delay: 2, ease: "easeInOut"}} className="px-4 py-2 rounded-2xl bg-white/5 border border-[#21E9CA]/20 text-xs md:text-sm font-medium backdrop-blur-md shadow-xl text-zinc-200">Sem sofrimento</motion.div>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                <a href="#cadastro" className="w-full sm:w-auto">
+                  <Button className="w-full">Receber convite VIP</Button>
+                </a>
               </div>
             </motion.div>
 
-            <motion.div style={{ y }} className="relative mt-8 md:mt-0 z-10">
-              <div className="relative z-10 bg-zinc-900 border border-white/10 rounded-[30px] md:rounded-[40px] p-5 md:p-6 shadow-2xl aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] md:max-w-[320px] mx-auto overflow-hidden">
+            <motion.div style={{ y }} className="relative mt-4 md:mt-0">
+              <div className="relative z-10 bg-zinc-900 border border-white/10 rounded-[30px] md:rounded-[40px] p-5 md:p-6 shadow-[0_0_50px_rgba(0,0,0,0.5)] aspect-[9/16] w-full max-w-[260px] sm:max-w-[300px] md:max-w-[320px] mx-auto overflow-hidden">
                 <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-4">
                   <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-zinc-800 flex items-center justify-center">
                     <Logo className="h-3 md:h-4" />
@@ -363,19 +403,21 @@
       ];
 
       return (
-        <section className="py-16 md:py-24 bg-zinc-950">
+        <section className="pt-20 pb-16 md:pt-32 md:pb-24 bg-transparent relative z-30">
           <div className="container mx-auto px-6">
             <div className="max-w-4xl mx-auto">
               {cards.map((card, idx) => (
                 <motion.div 
                   key={idx}
-                  initial={{ opacity: 0, y: 50 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ margin: "-50px" }}
-                  className="md:sticky md:top-24 mb-8 md:mb-12"
+                  initial={{ opacity: 0, scale: 0.8, y: 150, rotateX: 45 }}
+                  whileInView={{ opacity: 1, scale: 1, y: 0, rotateX: 0 }}
+                  transition={{ type: "spring", stiffness: 120, damping: 20, bounce: 0.5, delay: idx * 0.1 }}
+                  viewport={{ margin: "-50px", once: false }}
+                  className="md:sticky mb-8 md:mb-12 origin-top"
+                  style={{ top: `calc(120px + ${idx * 30}px)`, zIndex: idx, perspective: 1000 }}
                 >
                   <div 
-                    className="p-6 sm:p-8 md:p-12 rounded-[24px] md:rounded-[40px] border border-white/10 flex flex-col md:flex-row gap-6 md:gap-8 items-center text-center md:text-left backdrop-blur-3xl shadow-xl transition-all duration-500 md:hover:border-[#21E9CA]/30"
+                    className="p-6 sm:p-8 md:p-12 rounded-[24px] md:rounded-[40px] border border-white/10 flex flex-col md:flex-row gap-6 md:gap-8 items-center text-center md:text-left backdrop-blur-3xl shadow-2xl transition-all duration-500 md:hover:border-[#21E9CA]/30"
                     style={{ backgroundColor: colors.cardBg }}
                   >
                     <div className="w-16 h-16 md:w-24 md:h-24 shrink-0 rounded-2xl md:rounded-[28px] flex items-center justify-center shadow-inner border border-white/20" style={{ background: `linear-gradient(135deg, ${colors.purple}, ${colors.purpleLight})` }}>
@@ -396,7 +438,7 @@
 
     const ProblemsSection = () => {
       return (
-        <section className="py-16 md:py-24 relative overflow-hidden">
+        <section className="py-16 md:py-24 relative overflow-hidden bg-transparent">
           <div className="container mx-auto px-6 text-center">
             <motion.div 
               initial={{ opacity: 0 }}
@@ -406,7 +448,7 @@
               <h2 className="text-3xl md:text-5xl font-black mb-6 md:mb-8 leading-tight">Para onde foi o seu dinheiro?</h2>
               <p className="text-lg md:text-xl text-zinc-300 mb-10 md:mb-12 font-medium leading-relaxed">
                 No fim do mês, a sensação é sempre a mesma: Você trabalhou. Ganhou dinheiro. 
-                <span className="inline-block mt-2 md:mt-0 text-white font-bold bg-white/10 px-3 py-1.5 rounded-lg border border-white/5 md:ml-2">Mas ele simplesmente sumiu.</span>
+                <span className="inline-block mt-2 md:mt-0 text-red-500 font-bold bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 md:ml-2 shadow-[0_0_15px_rgba(239,68,68,0.3)]">Mas ele simplesmente sumiu.</span>
               </p>
               
               <div className="grid sm:grid-cols-2 gap-4 md:gap-6 text-left">
@@ -430,16 +472,55 @@
                 ))}
               </div>
 
+              {/* Animação dramática da frase */}
               <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                className="mt-12 md:mt-16 p-6 md:p-8 rounded-[24px] md:rounded-[40px] bg-gradient-to-br from-zinc-900 to-black border border-[#21E9CA]/20"
+                initial={{ scale: 0.8, opacity: 0, y: 50, rotateZ: -3 }}
+                whileInView={{ scale: 1, opacity: 1, y: 0, rotateZ: 0 }}
+                transition={{ type: "spring", stiffness: 150, damping: 15 }}
+                className="mt-16 md:mt-24 p-8 md:p-14 rounded-[30px] md:rounded-[50px] bg-gradient-to-br from-zinc-900 to-black border border-[#21E9CA]/30 shadow-[0_0_50px_rgba(33,233,202,0.15)] relative overflow-hidden group"
               >
-                <p className="text-lg md:text-2xl font-bold text-zinc-300">👉 O problema não é quanto você ganha.</p>
-                <p className="text-2xl md:text-4xl font-black text-[#21E9CA] mt-2">É a falta de controle.</p>
+                <motion.div animate={{ opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 3, repeat: Infinity }} className="absolute inset-0 bg-gradient-to-r from-[#21E9CA]/10 to-transparent pointer-events-none" />
+                <p className="text-xl md:text-3xl font-bold text-zinc-300 relative z-10 mb-4 transition-transform group-hover:translate-x-2">👉 O problema não é quanto você ganha.</p>
+                <p className="text-4xl md:text-6xl font-black text-[#21E9CA] mt-2 relative z-10 drop-shadow-[0_0_20px_rgba(33,233,202,0.4)] transition-transform group-hover:translate-x-2">É a falta de controle.</p>
               </motion.div>
             </motion.div>
           </div>
+        </section>
+      );
+    };
+
+    const TransitionSection = () => {
+      return (
+        <section className="py-32 md:py-48 relative flex items-center justify-center overflow-hidden bg-black border-t border-b border-white/5">
+          {/* Brilho de fundo animado */}
+          <div className="absolute inset-0 flex justify-center items-center opacity-30 pointer-events-none">
+             <motion.div 
+                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#21E9CA] blur-[150px] md:blur-[250px] rounded-[100%]" 
+             />
+          </div>
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 50, filter: "blur(10px)" }}
+            whileInView={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+            viewport={{ once: false, margin: "-100px" }}
+            className="text-center relative z-10 px-6"
+          >
+            <motion.div 
+               initial={{ opacity: 0, y: -20 }}
+               whileInView={{ opacity: 1, y: 0 }}
+               transition={{ delay: 0.2 }}
+               className="inline-block px-4 py-1.5 rounded-full bg-[#21E9CA]/10 border border-[#21E9CA]/30 text-[#21E9CA] font-bold uppercase tracking-[0.2em] md:tracking-[0.3em] text-xs md:text-sm mb-6 md:mb-8 shadow-[0_0_20px_rgba(33,233,202,0.2)]"
+            >
+               A Virada de Chave
+            </motion.div>
+            <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white leading-tight">
+              E quando você <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#21E9CA] to-emerald-400"> tem controle...</span>
+            </h2>
+          </motion.div>
         </section>
       );
     };
@@ -452,21 +533,25 @@
       ];
 
       return (
-        <section id="solucao" className="py-16 md:py-24 bg-zinc-950">
+        <section id="solucao" className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto px-6">
             <div className="text-center mb-12 md:mb-16">
-              <p className="text-[#21E9CA] font-bold uppercase tracking-widest text-xs mb-3 md:mb-4">A Virada de Chave</p>
-              <h2 className="text-3xl md:text-5xl font-black leading-tight">E quando você tem controle...</h2>
-              <p className="text-zinc-400 mt-3 md:mt-4 text-lg md:text-xl font-medium">Tudo começa a fazer sentido.</p>
+              <motion.h2 
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 className="text-2xl md:text-4xl font-bold text-zinc-300 leading-tight"
+              >
+                 Tudo começa a fazer sentido.
+              </motion.h2>
             </div>
 
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 md:gap-8">
               {items.map((item, i) => (
                 <motion.div 
                   key={i}
-                  initial={{ opacity: 0, y: 30 }}
+                  initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
+                  transition={{ delay: i * 0.1, type: "spring", stiffness: 100 }}
                   viewport={{ once: true, margin: "-50px" }}
                   className="h-full"
                 >
@@ -570,7 +655,7 @@
       ];
 
       return (
-        <section id="como-funciona" className="py-16 md:py-24 bg-zinc-950">
+        <section id="como-funciona" className="py-16 md:py-24 bg-transparent">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16 md:mb-20">
               <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight">Começar leva menos de 1 minuto.</h2>
@@ -664,7 +749,7 @@
 
     const VIPSection = () => {
       return (
-        <section className="py-16 md:py-24 container mx-auto px-4 sm:px-6">
+        <section id="cadastro" className="py-16 md:py-24 container mx-auto px-4 sm:px-6">
           <div className="relative overflow-hidden rounded-[32px] md:rounded-[50px] bg-zinc-900 border border-white/10 p-6 sm:p-10 md:p-24 text-center">
             <div className="absolute top-0 right-0 p-6 md:p-12 opacity-5 md:opacity-10 rotate-12 pointer-events-none">
               <Zap size={120} className="text-[#21E9CA] md:w-[200px] md:h-[200px]" />
@@ -675,7 +760,10 @@
               whileInView={{ opacity: 1, y: 0 }}
               className="relative z-10 max-w-2xl mx-auto"
             >
-              <h2 className="text-3xl sm:text-4xl md:text-6xl font-black mb-4 md:mb-8 leading-tight">Comece agora. <span className="text-[#21E9CA]">Sem risco.</span></h2>
+              <h2 className="text-4xl sm:text-5xl md:text-7xl font-black mb-4 md:mb-8 leading-tight">
+                Comece agora. <br/>
+                <span className="text-[#21E9CA] block mt-2 md:mt-4">Sem risco.</span>
+              </h2>
               <p className="text-base md:text-xl text-zinc-400 mb-8 md:mb-12">Receba um convite VIP e teste por 15 dias grátis. Tenha o controle que você sempre sonhou.</p>
               
               <div className="bg-black/50 p-6 sm:p-8 md:p-12 rounded-[24px] md:rounded-[40px] border border-white/5 backdrop-blur-xl">
@@ -711,7 +799,7 @@
               <ul className="space-y-3 md:space-y-4 text-zinc-500 text-sm md:text-base">
                 <li><a href="#" className="hover:text-white transition-colors">WhatsApp Bot</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Dashboard Web</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Convite VIP</a></li>
+                <li><a href="#cadastro" className="hover:text-white transition-colors">Convite VIP</a></li>
               </ul>
             </div>
             <div>
@@ -734,15 +822,27 @@
       return (
         <div className="min-h-screen text-white font-['Plus_Jakarta_Sans',_sans-serif]" style={{ backgroundColor: colors.bg }}>
           <Navbar />
-          <Hero />
-          <BulletsSection />
-          <ProblemsSection />
-          <SolutionCards />
-          <Differentials />
-          <HowItWorks />
-          <DesktopVision />
-          <VIPSection />
-          <Footer />
+          
+          {/* Seção Hero Fixa no Fundo */}
+          <div className="fixed top-0 left-0 w-full h-[100vh] z-0">
+            <Hero />
+          </div>
+
+          {/* Espaçador para permitir o rolamento - Deixa 10vh da próxima seção aparecendo no fundo */}
+          <div className="h-[90vh] w-full pointer-events-none relative z-10"></div>
+
+          {/* O Bloco Arredondado que desliza por cima da tela inicial */}
+          <div className="relative z-20 bg-[#0A0A0A] rounded-t-[40px] md:rounded-t-[80px] shadow-[0_-30px_60px_rgba(0,0,0,0.9)] border-t border-white/10 overflow-hidden flex flex-col">
+            <BulletsSection />
+            <ProblemsSection />
+            <TransitionSection />
+            <SolutionCards />
+            <Differentials />
+            <HowItWorks />
+            <DesktopVision />
+            <VIPSection />
+            <Footer />
+          </div>
         </div>
       );
     };
