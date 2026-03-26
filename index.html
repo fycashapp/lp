@@ -849,7 +849,7 @@
     };
 
     // --- SEÇÃO DE PREÇOS ---
-    const PricingSection = () => {
+    const PricingSection = ({ onSelectPlan }) => {
       return (
         <section id="planos" className="scroll-mt-28 py-16 md:py-24 relative overflow-hidden bg-transparent">
           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/5 to-transparent" />
@@ -898,7 +898,7 @@
                    <li className="flex items-center gap-3 text-zinc-200 font-medium"><CheckCircle2 className="text-[#21E9CA] shrink-0" size={20} /> Acesso completo</li>
                  </ul>
 
-                 <a href="#cadastro" className="block w-full mt-auto">
+                 <a href="#cadastro" onClick={() => onSelectPlan('anual')} className="block w-full mt-auto">
                    <Button className="w-full py-4 md:py-5 text-sm md:text-base">Quero economizar no anual 🔥</Button>
                  </a>
                </motion.div>
@@ -921,7 +921,7 @@
                    <li className="flex items-center gap-3 text-zinc-500"><X className="text-red-500/50 shrink-0" size={20} /> Mais caro no longo prazo</li>
                  </ul>
 
-                 <a href="#cadastro" className="block w-full mt-auto">
+                 <a href="#cadastro" onClick={() => onSelectPlan('mensal')} className="block w-full mt-auto">
                    <button className="w-full py-4 rounded-2xl border border-white/10 text-zinc-400 font-bold hover:bg-white/5 hover:text-white transition-colors text-sm md:text-base">
                      Quero continuar com o mensal
                    </button>
@@ -934,7 +934,7 @@
       );
     };
 
-    const VIPSection = () => {
+    const VIPSection = ({ selectedPlan, onPlanChange }) => {
       const [formData, setFormData] = useState({ name: '', whatsapp: '', email: '' });
       const [status, setStatus] = useState('idle'); 
 
@@ -967,7 +967,9 @@
         setStatus('loading');
 
         try {
-          const urlEncodedData = new URLSearchParams(formData).toString();
+          // Envia o formulário com o plano selecionado incluído
+          const dataToSend = { ...formData, plan: selectedPlan };
+          const urlEncodedData = new URLSearchParams(dataToSend).toString();
 
           await fetch(WEBHOOK_URL, {
             method: 'POST',
@@ -1003,7 +1005,7 @@
                 Comece agora. <br/>
                 <span className="text-[#21E9CA] block mt-2 md:mt-4">Sem risco.</span>
               </h2>
-              <p className="text-base md:text-xl text-zinc-400 mb-8 md:mb-12">Escolha seu plano e teste por 15 dias grátis. Tenha o controle que você sempre sonhou.</p>
+              <p className="text-base md:text-xl text-zinc-400 mb-8 md:mb-12">Confirme seu plano e teste por 15 dias grátis. Tenha o controle que você sempre sonhou.</p>
               
               <div className="bg-black/50 p-6 sm:p-8 md:p-12 rounded-[24px] md:rounded-[40px] border border-white/5 backdrop-blur-xl">
                  
@@ -1019,44 +1021,65 @@
                      <button onClick={() => setStatus('idle')} className="mt-4 text-sm text-[#21E9CA] underline">Voltar</button>
                    </motion.div>
                  ) : (
-                   <form onSubmit={handleSubmit} className="flex flex-col gap-3 md:gap-4 mb-6 md:mb-8">
-                      <input 
-                        type="text" 
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        placeholder="Seu Nome" 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
-                      />
-                      <input 
-                        type="tel" 
-                        name="whatsapp"
-                        value={formData.whatsapp}
-                        onChange={handleChange}
-                        required
-                        maxLength="15"
-                        placeholder="Seu WhatsApp" 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
-                      />
-                      <input 
-                        type="email" 
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        placeholder="Seu E-mail" 
-                        className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
-                      />
+                   <form onSubmit={handleSubmit} className="flex flex-col mb-6 md:mb-8">
+                      
+                      {/* Seleção do Plano Direto no Formulário */}
+                      <div className="flex gap-2 md:gap-4 w-full mb-4 md:mb-6">
+                         <button
+                           type="button"
+                           onClick={() => onPlanChange('anual')}
+                           className={`flex-1 py-3 px-2 rounded-xl border font-bold text-xs md:text-sm transition-all ${selectedPlan === 'anual' ? 'bg-[#21E9CA] text-black border-[#21E9CA] shadow-[0_0_15px_rgba(33,233,202,0.3)]' : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10'}`}
+                         >
+                           Plano Anual <span className="block text-[10px] font-normal opacity-80 mt-0.5">(R$ 97/ano)</span>
+                         </button>
+                         <button
+                           type="button"
+                           onClick={() => onPlanChange('mensal')}
+                           className={`flex-1 py-3 px-2 rounded-xl border font-bold text-xs md:text-sm transition-all ${selectedPlan === 'mensal' ? 'bg-zinc-700 text-white border-white/30 shadow-inner' : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10'}`}
+                         >
+                           Plano Mensal <span className="block text-[10px] font-normal opacity-80 mt-0.5">(R$ 9,90/mês)</span>
+                         </button>
+                      </div>
+
+                      <div className="grid gap-3 md:gap-4 mb-4">
+                        <input 
+                          type="text" 
+                          name="name"
+                          value={formData.name}
+                          onChange={handleChange}
+                          required
+                          placeholder="Seu Nome" 
+                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                        />
+                        <input 
+                          type="tel" 
+                          name="whatsapp"
+                          value={formData.whatsapp}
+                          onChange={handleChange}
+                          required
+                          maxLength="15"
+                          placeholder="Seu WhatsApp" 
+                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                        />
+                        <input 
+                          type="email" 
+                          name="email"
+                          value={formData.email}
+                          onChange={handleChange}
+                          required
+                          placeholder="Seu E-mail" 
+                          className="w-full bg-white/5 border border-white/10 rounded-xl md:rounded-2xl py-3 px-4 md:py-4 md:px-6 focus:outline-none focus:border-[#21E9CA] transition-colors text-sm md:text-base" 
+                        />
+                      </div>
                       
                       {status === 'error' && (
-                        <p className="text-red-500 text-sm mt-2 font-medium">Ocorreu um erro ao enviar. Verifique a sua conexão.</p>
+                        <p className="text-red-500 text-sm mb-4 font-medium">Ocorreu um erro ao enviar. Verifique a sua conexão.</p>
                       )}
 
                       <Button 
                         type="submit" 
                         disabled={status === 'loading'}
-                        className="w-full py-4 md:py-5 text-lg md:text-xl mt-2"
+                        className="w-full py-4 md:py-5 text-lg md:text-xl"
                       >
                         {status === 'loading' ? 'Enviando...' : '🎁 TESTE 15 DIAS SEM CUSTO'}
                       </Button>
@@ -1110,6 +1133,9 @@
     };
 
     const App = () => {
+      // Estado Global para controlar a escolha do plano (padrão: anual)
+      const [selectedPlan, setSelectedPlan] = useState('anual');
+
       // Injetar favicon dinamicamente
       useEffect(() => {
         const faviconUrl = "https://raw.githubusercontent.com/fycashapp/lp/refs/heads/main/LOGO%201.jpeg";
@@ -1151,8 +1177,8 @@
             <Differentials />
             <HowItWorks />
             <DesktopVision />
-            <PricingSection />
-            <VIPSection />
+            <PricingSection onSelectPlan={setSelectedPlan} />
+            <VIPSection selectedPlan={selectedPlan} onPlanChange={setSelectedPlan} />
             <Footer />
           </div>
         </div>
