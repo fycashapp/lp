@@ -1055,6 +1055,27 @@ const Footer = () => {
 };
 
 const App = () => {
+  // Injetar favicon dinamicamente
+  useEffect(() => {
+    const faviconUrl = "https://raw.githubusercontent.com/fycashapp/lp/refs/heads/main/LOGO%201.jpeg";
+    
+    let link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = faviconUrl;
+    
+    let shortcutLink = document.querySelector("link[rel='shortcut icon']");
+    if (!shortcutLink) {
+      shortcutLink = document.createElement('link');
+      shortcutLink.rel = 'shortcut icon';
+      document.head.appendChild(shortcutLink);
+    }
+    shortcutLink.href = faviconUrl;
+  }, []);
+
   return (
     <div className="min-h-screen text-white font-['Plus_Jakarta_Sans',_sans-serif]" style={{ backgroundColor: colors.bg }}>
       <Navbar />
